@@ -255,6 +255,7 @@
 				DEVELOPMENT_TEAM = RGG5G4R5CT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app needs Bluetooth access to provision the ESP32 device.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs Location access to scan for Bluetooth devices.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -286,6 +287,7 @@
 				DEVELOPMENT_TEAM = RGG5G4R5CT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app needs Bluetooth access to provision the ESP32 device.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs Location access to scan for Bluetooth devices.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
