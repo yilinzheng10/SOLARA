@@ -28,7 +28,7 @@ struct MenuView: View {
                 // Main content
                 VStack(alignment: .leading) {
 
-                    // 📊 Energy Summary Card
+                    //Energy Summary Card
                     HStack {
                         VStack(alignment: .center) {
                             HStack {
@@ -101,12 +101,12 @@ struct MenuView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 10)
 
-                    // 🖼 Section Title
+                    //Section Title
                     Text("Devices:")
                         .font(.headline)
                         .padding(.horizontal)
 
-                    // 📱 Devices Gridw
+                    //Devices Gridw
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(viewModel.devices) { device in
                             Button(action: {
@@ -157,7 +157,7 @@ struct MenuView: View {
                     }
                     Spacer()
 
-                    // 📍 Footer
+                    //Footer
                     HStack {
                         Spacer()
                         Text("Solara ®")

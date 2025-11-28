@@ -16,6 +16,7 @@ struct DeviceInfoSettings: View {
     @StateObject private var weatherViewModel = GoogleWeatherViewModel()
     @State private var elevation: Double = 0
     @State private var azimuth: Double = 0
+    @State private var optimalAngle: Double = 0
     
     var body: some View {
         VStack(spacing: 24) {
@@ -41,38 +42,21 @@ struct DeviceInfoSettings: View {
             .cornerRadius(16)
             .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
             
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack() {
-                        Text("Battery")
-                            .font(.headline)
-                        Spacer()
-                        Image(systemName: "battery.100")
-                            .foregroundColor(.green)
-                    }
-                    Text("90%")
-                    
-                }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(16)
-                .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
-                Spacer()
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack() {
-                        Text("Power Output")
-                            .font(.headline)
-                        Spacer()
-                        Image(systemName: "bolt")
-                            .foregroundColor(.green)
-                    }
+            HStack(alignment: .top) {
+                Spacer() // Push content to center
+                VStack(spacing: 16) {
+                    Text("Power Output")
+                        .font(.headline)
                     Text("4.9 kW")
                 }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(16)
-                .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
+                Spacer() // Push content to center
+                Image(systemName: "bolt")
+                    .foregroundColor(.green)
             }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
             
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 16) {
@@ -135,7 +119,7 @@ struct DeviceInfoSettings: View {
                 HStack {
                     Text("Optimal Angle")
                     Spacer()
-                    Text("45°")
+                    Text("\(Int(optimalAngle))°")
                 }
                 
                 Divider()
@@ -178,6 +162,14 @@ struct DeviceInfoSettings: View {
         let pos = Solar.position(date: Date(), latitude: device.location.latitude, longitude: device.location.longitude)
         elevation = pos.elevation
         azimuth = pos.azimuth
+        let (angle, _) = optimalTiltForFixedAzimuth(
+            alphaDeg: elevation,
+            gammaSDeg: azimuth,
+            gammaPDeg: device.orientation
+        )
+
+        optimalAngle = angle
+
     }
     
     private func compassDirection(from angle: Double) -> String {

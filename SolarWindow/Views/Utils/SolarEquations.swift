@@ -11,6 +11,82 @@ struct SolarPosition {
     let azimuth: Double    // degrees from North
 }
 
+/// Cosine of incidence for given geometry (clamped to [0,1])
+/// alphaDeg = solar elevation, gammaSDeg = solar azimuth, betaDeg = panel tilt from horizontal,
+/// gammaPDeg = panel azimuth (fixed by facade). All in degrees.
+func cosIncidence(alphaDeg: Double, gammaSDeg: Double,
+                  betaDeg: Double, gammaPDeg: Double) -> Double {
+    let alpha = alphaDeg.toRad
+    let beta  = betaDeg.toRad
+    let delta = (gammaSDeg - gammaPDeg).toRad
+    let c = cos(alpha) * sin(beta) * cos(delta) + sin(alpha) * cos(beta)
+    return max(0.0, min(1.0, c))
+}
+
+/// Optimal tilt (degrees) that maximizes direct-beam term for a fixed panel azimuth.
+/// beta is tilt from horizontal; clamp to your mechanical limits.
+func optimalTiltForFixedAzimuth(alphaDeg: Double, gammaSDeg: Double,
+                                gammaPDeg: Double,
+                                betaMin: Double = -90.0, betaMax: Double = 90)
+-> (betaOpt: Double, cosThetaAtOpt: Double) {
+    let alpha = alphaDeg.toRad
+    let delta = (gammaSDeg - gammaPDeg).toRad
+    let A = cos(alpha) * cos(delta)   // coefficient of sin(beta)
+    let B = sin(alpha)                // coefficient of cos(beta)
+
+    // Closed-form optimum
+    var betaOpt = atan2(A, B).toDeg
+
+    // Normalize/clamp to mechanical range
+    if betaOpt < betaMin { betaOpt = betaMin }
+    if betaOpt > betaMax { betaOpt = betaMax }
+
+    // cosθ at commanded beta
+    let beta = betaOpt.toRad
+    var cosTheta = A * sin(beta) + B * cos(beta)
+    cosTheta = max(0.0, min(1.0, cosTheta))
+    
+    return (betaOpt, cosTheta)
+}
+
+/// Optional: fraction of rated direct-beam power at arbitrary beta (0..1)
+func directPowerFraction(alphaDeg: Double, gammaSDeg: Double,
+                         betaDeg: Double, gammaPDeg: Double) -> Double {
+    cosIncidence(alphaDeg: alphaDeg, gammaSDeg: gammaSDeg, betaDeg: betaDeg, gammaPDeg: gammaPDeg)
+}
+
+func panelEfficiency(solarAzimuth: Double, solarElevation: Double,
+                     panelAzimuth: Double, panelTilt: Double) -> Double {
+    
+    // Convert to radians
+    let As = solarAzimuth.toRad
+    let h  = solarElevation.toRad
+    let Ap = panelAzimuth.toRad
+    let Tp = panelTilt.toRad
+    
+    // Panel normal vector
+    let np = [
+        cos(Tp) * cos(Ap),
+        cos(Tp) * sin(Ap),
+        sin(Tp)
+    ]
+    
+    // Sun vector
+    let s = [
+        cos(h) * cos(As),
+        cos(h) * sin(As),
+        sin(h)
+    ]
+    
+    // Dot product
+    let dot = np[0]*s[0] + np[1]*s[1] + np[2]*s[2]
+    
+    // Clamp (no backside generation)
+    let cosTheta = max(dot, 0.0)
+    
+    return cosTheta // this is η (relative efficiency, 0 to 1)
+}
+
 struct Solar {
     static func position(date utcDate: Date, latitude lat: CLLocationDegrees, longitude lon: CLLocationDegrees) -> SolarPosition {
         let jd = julianDay(from: utcDate)
@@ -108,4 +184,6 @@ struct Solar {
         if v > max { return max }
         return v
     }
+    
+    
 }

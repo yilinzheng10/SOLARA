@@ -135,8 +135,8 @@ struct HomeView: View {
                             .shadow(radius: 5)
                         }
                         Button(action: {
-//                            homeVM.setMode(mode: "Closed")
-                            homeVM.apicall()
+                            homeVM.setMode(mode: "Closed")
+//                            homeVM.apicall()
                         }) {
                             VStack {
                                 Image("solar-panel-close")
@@ -219,7 +219,7 @@ struct HomeView: View {
                     path.append(.deviceInfoSettings(homeVM.device))
                 } label: {
                     Image(systemName: "info.circle")
-                        .foregroundColor(.black)
+                        .foregroundColor(homeVM.isDaytime ? .black : .white)
                 }
             }
         }
