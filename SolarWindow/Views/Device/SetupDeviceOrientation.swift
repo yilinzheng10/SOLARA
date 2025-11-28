@@ -13,7 +13,7 @@ struct SetupDeviceOrientation: View {
     let coordinates: Coordinates
     let locationName: String
     @State private var showHelpDetails = false
-    @State private var orientationDegree:Double = 180
+    @State private var orientationIndex: Double = 2 // 0..4 -> 0,90,180,270,360
     @Binding var path: [DeviceNavigation]
     @ObservedObject var viewModel: DeviceMenuViewModel
     
@@ -29,8 +29,7 @@ struct SetupDeviceOrientation: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
             
@@ -42,8 +41,10 @@ struct SetupDeviceOrientation: View {
                         .font(.headline)
                     Spacer()
                     Button(action: {
+                        print("[SetupDeviceOrientation] Tapping help toggle. Current: \(showHelpDetails)")
                         withAnimation {
                             showHelpDetails.toggle()
+                            print("[SetupDeviceOrientation] Toggled help. New: \(showHelpDetails)")
                         }
                     }) {
                         Image(systemName: showHelpDetails ? "chevron.up.circle.fill" : "questionmark.circle.fill")
@@ -53,25 +54,40 @@ struct SetupDeviceOrientation: View {
                 }
 
                 if showHelpDetails {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "safari")
                                 .foregroundColor(.blue)
                             Text("Use your phone's built-in compass app to find the direction")
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .layoutPriority(1)
                         }
-                        HStack(alignment: .center) {
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                             Text("Stand facing the same direction as your solar panels")
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .layoutPriority(1)
                         }
-                        HStack(alignment: .center) {
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                             Text("Note the compass reading and adjust the slider below")
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .layoutPriority(1)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                    .onAppear { print("[SetupDeviceOrientation] Help details appeared") }
+                    .onDisappear { print("[SetupDeviceOrientation] Help details disappeared") }
                 }
             }
             .padding()
@@ -91,12 +107,15 @@ struct SetupDeviceOrientation: View {
                 VStack(alignment: .center, spacing: 16) {
                     Text("Current orientation reading")
                         .font(.subheadline)
-                    Text("\(Int(orientationDegree))°")
+                    Text("\(Int(degrees(for: orientationIndex)))°")
                         .foregroundColor(.orange)
                         .font(.title)
                         .bold()
-                    Slider(value: $orientationDegree, in: 0...360, step: 1)
+                    Slider(value: $orientationIndex, in: 0...4, step: 1)
                         .accentColor(.black)
+                        .onChange(of: orientationIndex) { newValue in
+                            print("[SetupDeviceOrientation] orientationIndex changed -> \(newValue) (degrees: \(degrees(for: newValue)))")
+                        }
                     HStack(alignment: .center){
                         Text("N (0)°")
                         Spacer()
@@ -136,8 +155,8 @@ struct SetupDeviceOrientation: View {
                             .scaledToFit()
                             .frame(width: 30, height: 100)
                             .foregroundColor(.orange)
-                            .rotationEffect(Angle(degrees: orientationDegree))
-                            .animation(.easeInOut(duration: 0.2), value: orientationDegree)
+                            .rotationEffect(Angle(degrees: degrees(for: orientationIndex)))
+                            .animation(.easeInOut(duration: 0.2), value: orientationIndex)
 
                     }
                     .frame(width: 200, height: 200)
@@ -149,7 +168,8 @@ struct SetupDeviceOrientation: View {
             .cornerRadius(16)
             .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
             Button(action: {
-                viewModel.addDevice(ipaddress: ipaddress, name: name, orientation: orientationDegree, location: coordinates, locationName: locationName)
+                print("[SetupDeviceOrientation] Completing setup with orientation: \(degrees(for: orientationIndex))°, coords: \(coordinates), locationName: \(locationName)")
+                viewModel.addDevice(ipaddress: ipaddress, name: name, orientation: degrees(for: orientationIndex), location: coordinates, locationName: locationName)
                 path.append(DeviceNavigation.setupCompleted)
             }) {
                 Text("Complete Setup")
@@ -168,6 +188,24 @@ struct SetupDeviceOrientation: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Device Setup")
+        .onAppear {
+            print("[SetupDeviceOrientation] onAppear - name: \(name), ip: \(ipaddress), coords: \(coordinates), locationName: \(locationName), showHelpDetails: \(showHelpDetails), orientationIndex: \(orientationIndex)")
+        }
+        .onDisappear {
+            print("[SetupDeviceOrientation] onDisappear")
+        }
+    }
+    
+    private func degrees(for index: Double) -> Double {
+        switch Int(index) {
+        case 0: return 0
+        case 1: return 90
+        case 2: return 180
+        case 3: return 270
+        case 4: return 360
+        default: return 0
+        }
     }
     
 }
+
